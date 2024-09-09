@@ -1,38 +1,40 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import Card from '../models/card';
-import { Code } from '../utils/errors';
+import BadRequestError from '../middleware/badRequestError';
+import NotFoundError from '../middleware/notFoundError';
+import { Code } from '../utils/codes';
 
-export const getCards = (req: Request, res: Response) => Card.find({})
-  .then((card) => res.send({ data: card }))
-  .catch((err) => { console.log(err); });
+export const getCards = (req: Request, res: Response, next: NextFunction) => Card.find({})
+  .then((card) => res.status(Code.OK).send({ data: card }))
+  .catch(next);
 
-export const createCard = (req: Request, res: Response) => {
-  const owner = req.body.user._id;
+export const createCard = (req: Request, res: Response, next: NextFunction) => {
   const { name, link } = req.body;
+  const owner = req.body.user._id;
 
   if (!name || !link || !owner) {
-    return res.status(Code.IncorrectData).send({ message: 'Переданы некорректные данные при создании карточки' });
+    throw new BadRequestError('Переданы некорректные данные при создании карточки');
   }
 
   return Card.create({ name, link, owner })
-    .then((card) => res.status(200).send({ data: card }))
-    .catch((err) => console.log(err));
+    .then((card) => res.status(Code.OK).send({ data: card }))
+    .catch(next);
 };
 
-export const deleteCard = (req: Request, res: Response) => {
+export const deleteCard = (req: Request, res: Response, next: NextFunction) => {
   const { cardId } = req.params;
   Card.findByIdAndDelete({ cardId })
     .then((card) => {
       if (!card) {
-        console.log('Данная карточка не найдена');
+        throw new NotFoundError('Данная карточка не найдена');
       } else {
-        res.send({ data: card });
+        res.status(Code.OK).send({ data: card });
       }
     })
-    .catch((err) => console.log(err));
+    .catch(next);
 };
 
-export const likeCard = (req: Request, res: Response) => {
+export const likeCard = (req: Request, res: Response, next: NextFunction) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.body._id } },
@@ -40,14 +42,12 @@ export const likeCard = (req: Request, res: Response) => {
   )
     .orFail()
     .then((card) => {
-      res.status(200).send(card);
+      res.status(Code.OK).send(card);
     })
-    .catch((err) => {
-      console.log(err);
-    });
+    .catch(next);
 };
 
-export const dislikeCard = (req: Request, res: Response) => {
+export const dislikeCard = (req: Request, res: Response, next: NextFunction) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.body._id } },
@@ -55,7 +55,7 @@ export const dislikeCard = (req: Request, res: Response) => {
   )
     .orFail()
     .then((card) => {
-      res.status(200).send(card);
+      res.status(Code.OK).send(card);
     })
-    .catch((err) => console.log(err));
+    .catch(next);
 };

@@ -1,47 +1,60 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import User from '../models/user';
-import { Code } from '../utils/errors';
+import { Code } from '../utils/codes';
+import BadRequestError from '../middleware/badRequestError';
+import NotFoundError from '../middleware/notFoundError';
 
-export const getUsers = (req: Request, res: Response) => User.find({})
-  .then((user) => res.send({ data: user }))
-  .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+export const getUsers = (req: Request, res: Response, next: NextFunction) => User.find({})
+  .then((user) => res.status(Code.OK).send({ data: user }))
+  .catch(next);
 
-export const createUser = (req: Request, res: Response) => {
+export const createUser = (req: Request, res: Response, next: NextFunction) => {
   const { name, about, avatar } = req.body;
 
   if (!name || !about || !avatar) {
-    return res.status(Code.IncorrectData).send({ message: 'Переданы некорректные данные при создании пользователя' });
+    throw new BadRequestError('Переданы некорректные данные при создании пользователя');
   }
+
   return User.create({ name, about, avatar })
     .then((user) => res.send({ data: user }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch(next);
 };
 
-export const getUser = (req: Request, res: Response) => {
+export const getUser = (req: Request, res: Response, next: NextFunction) => {
   const id = req.params.userId;
   return User.findById(id)
-    .orFail()
+    .orFail(() => {
+      throw new NotFoundError('Передан некорректный _id пользователя.');
+    })
     .then((users) => res.send({ data: users }))
-    .catch((err) => { console.log(err); });
+    .catch(next);
 };
 
-export const updateProfile = (req: Request, res: Response) => {
+export const updateProfile = (req: Request, res: Response, next: NextFunction) => {
   const { name, about } = req.body;
+
+  if (!name || !about) {
+    throw new BadRequestError('Переданы некорректные данные при изменении данных пользователя');
+  }
   // @ts-expect-error
   const id = req.user._id;
 
   return User.findByIdAndUpdate(id, { name, about }, { new: true, runValidators: true })
-    .orFail()
+    .orFail(() => {
+      throw new NotFoundError('Передан некорректный _id пользователя.');
+    })
     .then((user) => {
       res.status(Code.OK).send(user);
     })
-    .catch((err) => {
-      console.log(err);
-    });
+    .catch(next);
 };
 
-export const updateAvatar = (req: Request, res: Response) => {
+export const updateAvatar = (req: Request, res: Response, next: NextFunction) => {
   const { avatar } = req.body;
+
+  if (!avatar) {
+    throw new BadRequestError('Переданы некорректные данные при изменении аватара пользователя');
+  }
   // @ts-expect-error
   const id = req.user._id;
 
@@ -50,7 +63,5 @@ export const updateAvatar = (req: Request, res: Response) => {
     .then((user) => {
       res.status(Code.OK).send(user);
     })
-    .catch((err) => {
-      console.log(err);
-    });
+    .catch(next);
 };
