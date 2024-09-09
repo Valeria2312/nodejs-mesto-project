@@ -2,9 +2,9 @@ import { model, Schema } from 'mongoose';
 
 interface ICard{
   name: string;
-  link: String;
+  link: string;
   owner: Schema.Types.ObjectId;
-  likes: Schema.Types.ObjectId;
+  likes: Schema.Types.ObjectId[];
   createdAt: Date
 }
 
@@ -24,7 +24,7 @@ const cardSchema = new Schema<ICard>({
     required: true,
   },
   likes: {
-    type: Schema.Types.ObjectId,
+    type: [Schema.Types.ObjectId],
     default: [],
   },
   createdAt: {
@@ -33,4 +33,4 @@ const cardSchema = new Schema<ICard>({
   },
 });
 
-export default model<ICard>('User', cardSchema);
+export default model<ICard>('Card', cardSchema);
