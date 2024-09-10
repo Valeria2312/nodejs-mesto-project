@@ -10,7 +10,8 @@ export const getCards = (req: Request, res: Response, next: NextFunction) => Car
 
 export const createCard = (req: Request, res: Response, next: NextFunction) => {
   const { name, link } = req.body;
-  const owner = req.body.user._id;
+  // @ts-expect-error
+  const owner = req.user._id;
 
   if (!name || !link || !owner) {
     throw new BadRequestError('Переданы некорректные данные при создании карточки');
@@ -23,7 +24,7 @@ export const createCard = (req: Request, res: Response, next: NextFunction) => {
 
 export const deleteCard = (req: Request, res: Response, next: NextFunction) => {
   const { cardId } = req.params;
-  Card.findByIdAndDelete({ cardId })
+  Card.findByIdAndDelete(cardId)
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Данная карточка не найдена');
@@ -35,9 +36,12 @@ export const deleteCard = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export const likeCard = (req: Request, res: Response, next: NextFunction) => {
+  // @ts-expect-error
+  const owner = req.user._id;
+
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $addToSet: { likes: req.body._id } },
+    { $addToSet: { likes: owner } },
     { new: true },
   )
     .orFail()
@@ -48,9 +52,12 @@ export const likeCard = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export const dislikeCard = (req: Request, res: Response, next: NextFunction) => {
+  // @ts-expect-error
+  const owner = req.user._id;
+
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $pull: { likes: req.body._id } },
+    { $pull: { likes: owner } },
     { new: true },
   )
     .orFail()
