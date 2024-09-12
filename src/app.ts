@@ -4,8 +4,9 @@ import usersRoutes from './routes/user';
 import cardsRoutes from './routes/card';
 import errorHandler from './middleware/errorHandler';
 
-mongoose.connect('mongodb://localhost:27017/mestodb');
-const { PORT = 3000 } = process.env;
+const { PORT = 3000, DB_ADDRESS = 'mongodb://localhost:27017/mestodb' } = process.env;
+
+mongoose.connect(DB_ADDRESS);
 
 const app = express();
 app.use(express.json());
