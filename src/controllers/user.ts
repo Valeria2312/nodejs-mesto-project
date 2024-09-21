@@ -97,7 +97,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
         });
         return res
           .cookie('token', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 })
-          .send();
+          .send({ data: token });
       });
     })
     .catch(next);
