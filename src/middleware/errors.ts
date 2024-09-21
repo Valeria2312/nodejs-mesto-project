@@ -1,8 +1,16 @@
-class ServerError extends Error {
-  statusCode: number;
+import { Request, Response } from 'express';
 
-  constructor(message: string) {
-    super(message);
-    this.statusCode = 500;
-  }
+interface IError extends Error {
+  statusCode?: number
 }
+
+export default (error: IError, req: Request, res: Response) => {
+  const { statusCode = 500, message } = error;
+  res
+    .status(statusCode)
+    .send({
+      message: statusCode === 500
+        ? 'На сервере произошла ошибка'
+        : message,
+    });
+};
