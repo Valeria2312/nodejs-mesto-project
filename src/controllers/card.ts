@@ -14,7 +14,7 @@ export const createCard = (req: Request, res: Response, next: NextFunction) => {
   const owner = req.user._id;
 
   if (!name || !link || !owner) {
-    throw new BadRequestError('Переданы некорректные данные при создании карточки');
+    return next(new BadRequestError('Переданы некорректные данные при создании карточки'));
   }
 
   return Card.create({ name, link, owner })
@@ -27,10 +27,12 @@ export const deleteCard = (req: Request, res: Response, next: NextFunction) => {
   Card.findByIdAndDelete(cardId)
     .then((card) => {
       if (!card) {
-        throw new NotFoundError('Данная карточка не найдена');
-      } else {
-        res.status(Code.OK).send({ data: card });
+        return next(new NotFoundError('Данная карточка не найдена'));
       }
+      if (req.params.userId !== card.owner.toString()) {
+        return next(new BadRequestError('Нет доступа'));
+      }
+      return res.status(Code.OK).send({ data: card });
     })
     .catch(next);
 };
