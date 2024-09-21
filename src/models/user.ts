@@ -1,6 +1,6 @@
 import { model, Schema } from 'mongoose';
 import { isEmail } from 'validator';
-import urlRegex from '../utils/consts';
+import { urlRegex } from '../utils/consts';
 
 interface IUser {
   name: string;
