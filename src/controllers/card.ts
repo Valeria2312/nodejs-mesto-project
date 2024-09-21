@@ -22,19 +22,19 @@ export const createCard = (req: Request, res: Response, next: NextFunction) => {
     .catch(next);
 };
 
-export const deleteCard = (req: Request, res: Response, next: NextFunction) => {
-  const { cardId } = req.params;
-  Card.findByIdAndDelete(cardId)
-    .then((card) => {
-      if (!card) {
-        return next(new NotFoundError('Данная карточка не найдена'));
-      }
-      if (req.params.userId !== card.owner.toString()) {
-        return next(new BadRequestError('Нет доступа'));
-      }
-      return res.status(Code.OK).send({ data: card });
-    })
-    .catch(next);
+export const deleteCard = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { cardId } = req.params;
+    const card = await Card.findById(cardId);
+    if (!card) {
+      return next(new NotFoundError('Данная карточка не найдена'));
+    }
+    if (req.params.userId !== card.owner.toString()) {
+      return next(new BadRequestError('Нет доступа'));
+    }
+    return Card.findByIdAndDelete(req.params.cardId)
+      .then(() => res.send({ message: 'Карточка удалена' }));
+  } catch (error) { return next(error); }
 };
 
 export const likeCard = (req: Request, res: Response, next: NextFunction) => {
