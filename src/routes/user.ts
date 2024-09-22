@@ -8,7 +8,7 @@ import { urlRegex } from '../utils/consts';
 const router = Router();
 router.get('/me', getMe);
 router.get('/', getUsers);
-router.get('/:userId', celebrate({ params: Joi.object().keys({ id: Joi.string().length(30) }) }), getUser);
+router.get('/:userId', celebrate({ params: Joi.object().keys({ userId: Joi.string().length(24) }) }), getUser);
 router.patch('/me', celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30).required(),
