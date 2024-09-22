@@ -3,6 +3,7 @@ import Card from '../models/card';
 import BadRequestError from '../middleware/badRequestError';
 import NotFoundError from '../middleware/notFoundError';
 import { Code } from '../utils/codes';
+import Forbidden from '../middleware/errorForbidden';
 
 export const getCards = (req: Request, res: Response, next: NextFunction) => Card.find({})
   .then((card) => res.status(Code.OK).send({ data: card }))
@@ -30,7 +31,7 @@ export const deleteCard = async (req: Request, res: Response, next: NextFunction
       return next(new NotFoundError('Данная карточка не найдена'));
     }
     if (req.params.userId !== card.owner.toString()) {
-      return next(new BadRequestError('Нет доступа'));
+      return next(new Forbidden('Недостаточно прав'));
     }
     return Card.findByIdAndDelete(req.params.cardId)
       .then(() => res.send({ message: 'Карточка удалена' }));
